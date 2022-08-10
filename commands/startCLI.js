@@ -2,8 +2,10 @@ import inquirer from "inquirer";
 import boxen from "boxen";
 import ora from "ora";
 import fs from "fs";
+import parseLogFile from "./parseLogFile.js";
 
 export default function startCLI() {
+  const spinner = ora();
   console.log(
     boxen(`VA-Log-Parser`, {
       title: `Written by: Luke Hagar`,
@@ -11,8 +13,10 @@ export default function startCLI() {
       padding: 5,
     })
   );
+  spinner.start(`Getting Current Directory`);
   const currentDirectory = process.cwd();
-  const spinner = ora(`Checking Path: ${currentDirectory}`).start();
+  spinner.succeed();
+  spinner.start(`Reading Directory: ${currentDirectory}`);
   let directoryContents = fs.readdirSync(currentDirectory);
   spinner.succeed();
   inquirer
@@ -32,10 +36,11 @@ export default function startCLI() {
       },
     ])
     .then((answers) => {
-      console.log(JSON.stringify(answers, null, "  "));
+      for (const logFile of answers.Files) {
+        try {
+          parseLogFile(logFile);
+        } catch {}
+      }
+      spinner.succeed("Finished Processing Log Files");
     });
-  //   spinner.start("Processing File 1");
-  //   spinner.succeed();
-  //   spinner.start("Processing File 2");
-  //   spinner.fail();
 }

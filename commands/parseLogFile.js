@@ -1,21 +1,18 @@
-import chalk from "chalk";
+import moment from "moment";
 import fs from "fs";
-import boxen from "boxen";
+import ora from "ora";
+import chalk from "chalk";
+
+const spinner = ora();
 
 function importLogFile(LogFile) {
   const allFileContents = fs.readFileSync(LogFile, "utf-8");
-  const fileLines = allFileContents.split(/\r?\n/);
-  let jsonArray = [];
-  console.log(fileLines);
-  for (const line of fileLines) {
-    try {
-      let jsonObjFromLine = JSON.parse(line);
-      jsonArray.push(jsonObjFromLine);
-    } catch {
-      console.log("Invalid JSON Found");
-    }
-  }
-  return jsonArray;
+  return allFileContents;
+}
+
+function getLogLines(LogFile) {
+  const fileLines = LogFile.split(/\r?\n/);
+  return fileLines;
 }
 
 function checkDirectory(path) {
@@ -24,23 +21,108 @@ function checkDirectory(path) {
 }
 
 function saveParsedFile(filePath, data) {
-  console.log(`Saving file ${filePath}`);
   const outputString = JSON.stringify(data);
   fs.writeFileSync(filePath, outputString);
 }
 
+function getDateRange(timeStamps) {
+  const sortedTimeStamps = timeStamps.sort((a, b) => b - a);
+  console.log(sortedTimeStamps[1]);
+  console.log(sortedTimeStamps[sortedTimeStamps.length - 1]);
+  const dateRange = `${moment(sortedTimeStamps[1]).format(
+    "YYYY-MM-DD[T]HHmmss"
+  )}_${moment(sortedTimeStamps[sortedTimeStamps.length - 1]).format(
+    "YYYY-MM-DD[T]HHmmss"
+  )}`;
+  console.log(dateRange);
+  return dateRange;
+}
+
+function parseLoggers(uniqueLoggers, jsonArray, errors, dateRange, org) {
+  for (const logger_name of uniqueLoggers) {
+    let loggerArray = jsonArray.filter(
+      (Obj) => Obj.logger_name === logger_name
+    );
+    let loggerErrorArray = errors.filter(
+      (Obj) => Obj.logger_name === logger_name
+    );
+    let loggerFolder = `./${org}/${dateRange}/${logger_name.replaceAll(
+      ".",
+      "-"
+    )}`;
+    if (!fs.existsSync(loggerFolder)) {
+      fs.mkdirSync(loggerFolder, { recursive: true });
+    }
+    const parsedLoggerPath = `${loggerFolder}/${logger_name.replaceAll(
+      ".",
+      "-"
+    )}-${dateRange}.json`;
+    const parsedLoggerErrorsPath = `${loggerFolder}/${logger_name.replaceAll(
+      ".",
+      "-"
+    )}-${dateRange}-Errors.json`;
+
+    saveParsedFile(parsedLoggerPath, loggerArray);
+    if (loggerErrorArray.length > 0) {
+      saveParsedFile(parsedLoggerErrorsPath, loggerErrorArray);
+      console.log(
+        chalk.bgGreenBright(`Errors found for Logger: ${logger_name}`)
+      );
+    }
+  }
+}
+
 export default function parseLogFile(LogFile) {
-  console.log(checkDirectory(LogFile));
-  const jsonArray = importLogFile(LogFile);
-  const errors = jsonArray.filter(
-    (Obj) =>
-      Obj.message?.includes("error") ||
-      Obj.exception?.stacktrace?.includes("error")
-  );
-  // console.log(jsonArray);
-  // console.log(errors);
-  const parsedDataPath = `${LogFile.replace(".log", "-log")}-Parsed.JSON`;
-  const errorPath = `${LogFile.replace(".log", "-log")}-Parsed-Errors.JSON`;
-  saveParsedFile(parsedDataPath, jsonArray);
-  saveParsedFile(errorPath, errors);
+  spinner.start(`Importing Log File: ${LogFile}`);
+  const wholeFile = importLogFile(LogFile);
+  spinner.succeed();
+  spinner.start(`Slicing Log File: ${LogFile}`);
+  const fileLines = getLogLines(wholeFile);
+  spinner.succeed();
+  let jsonArray = [];
+  let errors = [];
+  let loggers = [];
+  let org = null;
+  let timeStamps = [];
+
+  spinner.start(`Processing Log Lines: ${LogFile}`);
+  for (const line of fileLines) {
+    let jsonObjFromLine;
+    try {
+      jsonObjFromLine = JSON.parse(line);
+    } catch {
+      jsonObjFromLine = { text: line };
+    }
+    jsonArray.push(jsonObjFromLine);
+    if (line.includes("error")) {
+      errors.push(jsonObjFromLine);
+    }
+    if (
+      jsonObjFromLine["logger_name"] !== null &&
+      jsonObjFromLine["logger_name"] !== undefined
+    ) {
+      loggers.push(jsonObjFromLine.logger_name);
+    }
+    if (
+      jsonObjFromLine["@timestamp"] !== null &&
+      jsonObjFromLine["@timestamp"] !== undefined
+    ) {
+      timeStamps.push(new Date(jsonObjFromLine["@timestamp"]));
+    }
+    if (
+      org == null &&
+      jsonObjFromLine["org"] !== null &&
+      jsonObjFromLine["org"] !== undefined
+    ) {
+      org = jsonObjFromLine.org;
+    }
+  }
+  spinner.succeed();
+  spinner.start(`Getting Unique Loggers: ${LogFile}`);
+  const uniqueLoggers = Array.from(new Set(loggers));
+  spinner.succeed();
+  spinner.start(`Getting Date Range: ${LogFile}`);
+  const dateRange = getDateRange(timeStamps);
+  spinner.succeed();
+  parseLoggers(uniqueLoggers, jsonArray, errors, dateRange, org);
 }
