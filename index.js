@@ -1,9 +1,12 @@
 #! /usr/bin/env node
 import { program } from "commander";
-import parseCCG from "./commands/parseCCG.js";
+import parseLogFile from "./commands/parseLogFile.js";
+import startCLI from "./commands/startCLI.js";
 program
-  .command("parseCCG <CCGFile>")
+  .command("parseLogFile <Path>")
   .description("Parse the Provided CCG Log File")
-  .action(parseCCG);
+  .action(parseLogFile);
+
+program.description("Start the interactive Parser").action(startCLI);
 
 program.parse();
