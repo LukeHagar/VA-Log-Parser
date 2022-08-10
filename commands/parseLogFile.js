@@ -27,14 +27,11 @@ function saveParsedFile(filePath, data) {
 
 function getDateRange(timeStamps) {
   const sortedTimeStamps = timeStamps.sort((a, b) => b - a);
-  console.log(sortedTimeStamps[1]);
-  console.log(sortedTimeStamps[sortedTimeStamps.length - 1]);
   const dateRange = `${moment(sortedTimeStamps[1]).format(
     "YYYY-MM-DD[T]HHmmss"
   )}_${moment(sortedTimeStamps[sortedTimeStamps.length - 1]).format(
     "YYYY-MM-DD[T]HHmmss"
   )}`;
-  console.log(dateRange);
   return dateRange;
 }
 
@@ -65,9 +62,7 @@ function parseLoggers(uniqueLoggers, jsonArray, errors, dateRange, org) {
     saveParsedFile(parsedLoggerPath, loggerArray);
     if (loggerErrorArray.length > 0) {
       saveParsedFile(parsedLoggerErrorsPath, loggerErrorArray);
-      console.log(
-        chalk.bgGreenBright(`Errors found for Logger: ${logger_name}`)
-      );
+      console.log(chalk.yellow(`Errors found for Logger: ${logger_name}`));
     }
   }
 }
