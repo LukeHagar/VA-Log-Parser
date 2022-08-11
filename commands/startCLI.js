@@ -3,6 +3,12 @@ import boxen from "boxen";
 import ora from "ora";
 import fs from "fs";
 import parseLogFile from "./parseLogFile.js";
+import chalk from "chalk";
+
+function checkDirectory(path) {
+  const stats = fs.statSync(path);
+  return stats.isDirectory();
+}
 
 export default function startCLI() {
   const spinner = ora();
@@ -25,7 +31,12 @@ export default function startCLI() {
         type: "checkbox",
         message: "Select Log Files to Parse",
         name: "Files",
-        choices: directoryContents,
+        choices: [
+          new inquirer.Separator(chalk.yellow("------Folders------")),
+          ...directoryContents.filter((Obj) => checkDirectory(Obj) === true),
+          new inquirer.Separator(chalk.green("------Files------")),
+          ...directoryContents.filter((Obj) => checkDirectory(Obj) === false),
+        ],
         validate(answer) {
           if (answer.length < 1) {
             return "You must choose at least one File.";
