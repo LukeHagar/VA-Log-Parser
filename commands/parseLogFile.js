@@ -15,11 +15,6 @@ function getLogLines(LogFile) {
   return fileLines;
 }
 
-function checkDirectory(path) {
-  const stats = fs.statSync(path);
-  return stats.isDirectory();
-}
-
 function saveParsedFile(filePath, data) {
   const outputString = JSON.stringify(data);
   fs.writeFileSync(filePath, outputString);
