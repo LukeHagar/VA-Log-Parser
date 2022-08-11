@@ -39,7 +39,7 @@ export default function startCLI() {
         ],
         validate(answer) {
           if (answer.length < 1) {
-            return "You must choose at least one File.";
+            return "You must choose at least one File or Folder.";
           }
 
           return true;
