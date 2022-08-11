@@ -4,6 +4,13 @@
   "description": "A Log Parser for SailPoint VA logs",
   "main": "index.js",
   "type": "module",
+  "keywords": [
+    "SailPoint",
+    "Virtual",
+    "Appliance",
+    "Identity",
+    "Now"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
