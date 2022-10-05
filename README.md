@@ -11,7 +11,7 @@ Node Module to Parse SailPoint VA logs
 
 # Installation
 
-```js
+```node
 npm i -g va-log-parser
 ```
 
@@ -19,6 +19,6 @@ npm i -g va-log-parser
 
 with the folder containing the logs currently open
 
-```js
-parse - va - log;
+```node
+parse-va-log;
 ```
