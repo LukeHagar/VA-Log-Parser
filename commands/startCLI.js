@@ -4,6 +4,7 @@ import ora from "ora";
 import fs from "fs";
 import parseLogFile from "./parseLogFile.js";
 import chalk from "chalk";
+import parseMultipleLogFiles from "./parseMultipleLogFiles.js";
 
 function checkDirectory(path) {
   const stats = fs.statSync(path);
@@ -32,14 +33,12 @@ export default function startCLI() {
         message: "Select Log Files to Parse",
         name: "Files",
         choices: [
-          new inquirer.Separator(chalk.yellow("------Folders------")),
-          ...directoryContents.filter((Obj) => checkDirectory(Obj) === true),
           new inquirer.Separator(chalk.green("------Files------")),
           ...directoryContents.filter((Obj) => checkDirectory(Obj) === false),
         ],
         validate(answer) {
           if (answer.length < 1) {
-            return "You must choose at least one File or Folder.";
+            return "You must choose at least one File.";
           }
 
           return true;
@@ -47,11 +46,10 @@ export default function startCLI() {
       },
     ])
     .then((answers) => {
-      for (const logFile of answers.Files) {
-        try {
-          parseLogFile(logFile);
-        } catch {}
+      if (answers.Files.length > 1) {
+        parseMultipleLogFiles(answers.Files);
+      } else {
+        parseLogFile(answers.Files[0]);
       }
-      spinner.succeed("Finished Processing Log Files");
     });
 }
