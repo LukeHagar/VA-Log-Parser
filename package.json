@@ -1,6 +1,6 @@
 {
   "name": "va-log-parser",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A Log Parser for SailPoint VA logs",
   "main": "index.js",
   "type": "module",
