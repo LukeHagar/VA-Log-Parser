@@ -1,7 +1,6 @@
 import fs from "fs";
 import linebyline from "linebyline";
 import ora from "ora";
-import chalk from "chalk";
 import cliProgress from "cli-progress";
 import sortLog from "./sortLog.js";
 
